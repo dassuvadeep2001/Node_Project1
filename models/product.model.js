@@ -20,6 +20,10 @@ const product = new mongoose.Schema({
     isDeleted: {
         type: Boolean,
         default: false
+    },
+    isFavorite: {
+        type: Boolean,
+        default: false
     }
 },{timestamps: true, versionKey: false});
 

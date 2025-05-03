@@ -136,54 +136,54 @@ class ProductController {
         }
     }
 
-    async sendProductsDetailsInEmail(req, res) {
-        try {
-            const { email } = req.body;
+    // async sendProductsDetailsInEmail(req, res) {
+    //     try {
+    //         const { email } = req.body;
     
-            if (!email) {
-                return res.status(400).json({
-                    status: 400,
-                    message: "Email is required",
-                    data: {}
-                });
-            }
+    //         if (!email) {
+    //             return res.status(400).json({
+    //                 status: 400,
+    //                 message: "Email is required",
+    //                 data: {}
+    //             });
+    //         }
     
-            const products = await productModel.find({ isDeleted: false }).select("productName price stock productImage");
+    //         const products = await productModel.find({ isDeleted: false }).select("productName price stock productImage");
     
-            if (products.length === 0) {
-                return res.status(404).json({
-                    status: 404,
-                    message: "No products found",
-                    data: {}
-                });
-            }
+    //         if (products.length === 0) {
+    //             return res.status(404).json({
+    //                 status: 404,
+    //                 message: "No products found",
+    //                 data: {}
+    //             });
+    //         }
     
-            // Create plain-text version of the product details
-            const plainTextDetails = products.map(product => 
-                `Product Name: ${product.productName}, Price: ${product.price}, Stock: ${product.stock}`
-            ).join('\n');
+    //         // Create plain-text version of the product details
+    //         const plainTextDetails = products.map(product => 
+    //             `Product Name: ${product.productName}, Price: ${product.price}, Stock: ${product.stock}`
+    //         ).join('\n');
     
-            // Send the email
-            const mailer = new Mailer('Gmail', process.env.APP_EMAIL, process.env.APP_PASSWORD);
-            const mailObject = {
-                to: email,
-                subject: "Product Details",
-                text: `Dear Customer,\n\nPlease find the details of the products below:\n\n${plainTextDetails}` 
-            };
+    //         // Send the email
+    //         const mailer = new Mailer('Gmail', process.env.APP_EMAIL, process.env.APP_PASSWORD);
+    //         const mailObject = {
+    //             to: email,
+    //             subject: "Product Details",
+    //             text: `Dear Customer,\n\nPlease find the details of the products below:\n\n${plainTextDetails}` 
+    //         };
     
-            await mailer.sendMail(mailObject); 
+    //         await mailer.sendMail(mailObject); 
 
-            return res.json({
-                status: 200,
-                message: "Product details sent successfully",
-            });
-        } catch (error) {
-            return res.json({
-                status: 500,
-                message: error.message,
-            });
-        }
-    }
+    //         return res.json({
+    //             status: 200,
+    //             message: "Product details sent successfully",
+    //         });
+    //     } catch (error) {
+    //         return res.json({
+    //             status: 500,
+    //             message: error.message,
+    //         });
+    //     }
+    // }
 }
 
 module.exports = new ProductController();

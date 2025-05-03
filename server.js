@@ -30,6 +30,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/category', require('./routes/category.routes'));
 app.use('/api/product', require('./routes/product.routes'));
+app.use('/api/cart', require('./routes/cart.routes'));
 
 app.listen(process.env.PORT, async () => {
     await db.connectDb();

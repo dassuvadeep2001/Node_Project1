@@ -45,7 +45,9 @@ class AuthController {
                 let mailObj = {
                     to: req.body.email,
                     subject: "Registration Confirmation",
-                    text: `You have successfully registered with us using the email ${req.body.email}. Your OTP for verification is ${otp}. Thank you!`
+                    text: 
+                    `Dear ${req.body.name}, 
+                    You have successfully registered with us using the email ${req.body.email}. Your OTP for verification is ${otp}. Thank you!`
                 };
             
                 mailer.sendMail(mailObj);
@@ -157,6 +159,90 @@ class AuthController {
             });
         }
     }
+    async forgetPassword(req, res) {
+       try{
+        let {email} = req.body;
+        if(!email){
+            return res.json({
+                status: 400,
+                message: "Please provide the details. Its a required field",
+                data: {}
+            });
+        }
+        const user= await userModel.findOne({email});
+        if(user){
+            const link = `http://localhost:3000/reset-password/${user._id}`;
+            const mailer = new Mailer('Gmail', process.env.APP_EMAIL, process.env.APP_PASSWORD);
+            let mailObj = {
+                to: email,
+                subject: "Reset Password",
+                text: `Dear ${user.name}, 
+                Please click on the link below to reset your password:
+                ${link}`
+            };
+            mailer.sendMail(mailObj);
+            return res.json({
+                status: 200,
+                message: "Email sent successfully",
+                data: {}
+            });
+        }else{
+            return res.json({
+                status: 400,
+                message: "User not found",  
+            });
+        }
+       }catch(error){
+            res.json({
+                status: 500,
+                message: error.message,
+                data: {}
+            })
+       }
+    }
+    async resetPassword(req, res) {
+        try{
+            let {password, confirmPassword} = req.body;
+            if(!password || !confirmPassword){
+                return res.json({
+                    status: 400,
+                    message: "Please provide the details. Its a required field",
+                    data: {}
+                });
+            }
+            if(password !== confirmPassword){
+                return res.json({
+                    status: 400,
+                    message: "Password and confirm password do not match",
+                    data: {}
+                });
+            }
+            let {id} = req.params;
+            console.log(id);
+            let user = await userModel.findById(id);
+            if(!user){
+                return res.json({
+                    status: 400,
+                    message: "User not found",
+                    data: {}
+                });
+            }
+            let hashedPassword = await new userModel().generateHash(password);
+            await userModel.updateOne({ _id: id }, { $set: { password: hashedPassword } });
+            return res.json({
+                status: 200,
+                message: "Password reset successfully",
+                data: {}
+            });
+        }catch(error){
+            return res.json({
+                status: 500,
+                message: error.message,
+                data: {}
+            });
+        }
+    }
+
     async profile(req, res) {
         try{
             let user = req.user;

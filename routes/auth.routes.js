@@ -7,6 +7,8 @@ const fileUpload = new multer({ folderName: "uploads", supportedFiles: ["image/p
 router.post('/register', fileUpload.upload().single('profileImage'), authController.register);
 router.post('/login', authController.login);
 router.post('/verify-email', authController.verifyEmail);
+router.post('/forget-password', authController.forgetPassword);
+router.post('/reset-password/:id', authController.resetPassword);
 router.get('/profile', auth.authenticate, authController.profile);
 router.put('/update-profile', auth.authenticate, fileUpload.upload().single('profileImage'), authController.updateProfile);
 
