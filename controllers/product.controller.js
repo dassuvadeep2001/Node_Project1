@@ -33,7 +33,7 @@ class ProductController {
     }
     async getProducts(req, res) {
         try {
-            let products = await productModel.find({isDeleted: false}).select("-createdAt -updatedAt -__v -isDeleted -_id");
+            let products = await productModel.find({isDeleted: false}).select("-createdAt -updatedAt -__v -isDeleted -_id -isFavorite");
             return res.json({
                 status: 200,
                 message: "Products found successfully",
@@ -121,10 +121,65 @@ class ProductController {
     }
     async getProductBasedOnStock(req, res) {
         try {
-            let products = await productModel.find({ stock: { $lt: 1 }, isDeleted: false }).select("-createdAt -updatedAt -__v -isDeleted -_id");
+            let products = await productModel.find({ stock: { $lt: 1 }, isDeleted: false }).select("-createdAt -updatedAt -__v -isDeleted -_id -isFavorite");
             return res.json({
                 status: 200,
                 message: "Products found successfully, which is out of stock",
+                data: products
+            });
+        } catch (error) {
+            return res.json({
+                status: 500,
+                message: error.message,
+                data: {}
+            });
+        }
+    }
+    async favoriteProduct(req, res) {
+        try {
+            const { id } = req.params; 
+    
+            if (!id) {
+                return res.status(400).json({
+                    status: 400,
+                    message: "Product ID is required",
+                    data: {}
+                });
+            }
+            const product = await productModel.findById(id);
+    
+            if (!product) {
+                return res.status(404).json({
+                    status: 404,
+                    message: "Product not found",
+                    data: {}
+                });
+            }
+    
+            const updatedProduct = await productModel.updateOne(
+                { _id: id },
+                { $set: { isFavorite: !product.isFavorite } } // Toggle the value
+            );
+    
+            return res.json({
+                status: 200,
+                message: `Product isFavorite updated to ${!product.isFavorite}`,
+                data: updatedProduct
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: 500,
+                message: error.message,
+                data: {}
+            });
+        }
+    }
+    async viewFavoriteProducts(req, res) {
+        try {
+            let products = await productModel.find({ isFavorite: true, isDeleted: false }).select("-createdAt -updatedAt -__v -isDeleted -_id -isFavorite");
+            return res.json({
+                status: 200,
+                message: "Favorite products found successfully",
                 data: products
             });
         } catch (error) {
