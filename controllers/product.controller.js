@@ -1,4 +1,5 @@
 const productModel= require('../models/product.model'); 
+const reviewModel = require('../models/review.model');
 const Mailer = require('../helper/mailer');
 
 class ProductController {
@@ -32,21 +33,54 @@ class ProductController {
         }
     }
     async getProducts(req, res) {
-        try {
-            let products = await productModel.find({isDeleted: false}).select("-createdAt -updatedAt -__v -isDeleted -_id -isFavorite");
-            return res.json({
-                status: 200,
-                message: "Products found successfully",
-                data: products
-            });
-        } catch (error) {
-            return res.json({
-                status: 500,
-                message: error.message,
-                data: {}
-            });
-        }
+    try {
+        let options={page : 1, limit : 3};
+        let products = productModel.aggregate([
+            {
+                $match: { isDeleted: false }
+            },
+            {
+                $lookup: {
+                    from: "reviews", // collection name in MongoDB
+                    localField: "_id",
+                    foreignField: "productId",
+                    as: "reviews"
+                }
+            },
+            {
+                $addFields: {
+                    averageReview: { $avg: "$reviews.rating" },
+                }   
+            },
+            {
+                $project: {
+                    productName: 1,
+                    price: 1,
+                    categoryId: 1,
+                    stock: 1,
+                    productImage: 1,
+                    averageReview: 1
+                }
+            },     
+        ])
+        let pageProduct = await productModel.aggregatePaginate(products, options);
+        return res.json({
+            status: 200,
+            message: "Products found successfully",
+            total: pageProduct.total,
+            page: pageProduct.page,
+            data: pageProduct.docs,
+            limit: pageProduct.limit,
+            pages: pageProduct.pages
+        });
+    } catch (error) {
+        return res.json({
+            status: 500,
+            message: error.message,
+            data: {}
+        });
     }
+}
     async updateProduct(req, res) {
         try {
             const { productName, price, categoryId, stock } = req.body;
